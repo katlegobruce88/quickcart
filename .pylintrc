@@ -1,0 +1,12 @@
+﻿[MASTER]
+load-plugins=pylint_django
+django-settings-module=quickcart.settings
+
+[FORMAT]
+max-line-length=120
+
+[MESSAGES CONTROL]
+disable=C0111,C0114,C0115,C0116,R0903,C0103
+
+[BASIC]
+good-names=i,j,k,ex,Run,_,pk,id,urlpatterns,register,app_name
