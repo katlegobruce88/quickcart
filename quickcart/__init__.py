@@ -1,4 +1,0 @@
-"""
-QuickCart Django project package.
-"""
-
