@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 
+
 class CoreConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'ems.djangoapps.core'
@@ -9,4 +10,3 @@ class CoreConfig(AppConfig):
     def ready(self):
         # Import signal handlers
         pass
-

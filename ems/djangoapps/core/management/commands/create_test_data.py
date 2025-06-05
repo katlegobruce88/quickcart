@@ -1,8 +1,10 @@
-from django.core.management.base import BaseCommand
-from django.utils import timezone
-from ems.djangoapps.product.models import Product, ProductType, Category
-from ems.djangoapps.warehouse.models import ProductVariant, Warehouse
 from decimal import Decimal
+
+from django.core.management.base import BaseCommand
+
+from ems.djangoapps.product.models import Product, ProductType, Category
+from ems.djangoapps.warehouse.models import ProductVariant
+
 
 class Command(BaseCommand):
     help = 'Creates test data for development'
@@ -44,4 +46,3 @@ class Command(BaseCommand):
                 )
 
         self.stdout.write(self.style.SUCCESS('Successfully created test data'))
-

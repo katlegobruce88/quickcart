@@ -14,8 +14,18 @@ from django.db.models import TextField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
+from ems.djangoapps.core.db.fields import SanitizedJSONField
+from ems.djangoapps.core.models import (
+    MetadataMixin,
+    ScheduledVisibilityModel,
+    TimeStampedModel,
+)
+from ems.djangoapps.core.utils.editorjs import clean_editor_js
+# Removed unused import: from Translation
+from ems.djangoapps.seo.models import SeoModel, SeoModelTranslationWithSlug
 
-class ProductCategoryBase(models.Model):
+
+class ProductCategoryBase(TimeStampedModel, models.Model):
     """Base abstract model for category-related models with common fields.
 
     This model provides common fields and functionality that can be
@@ -31,7 +41,9 @@ class ProductCategoryBase(models.Model):
 
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = models.JSONField(blank=True, null=True)
+    description = SanitizedJSONField(
+        blank=True, null=True, sanitizer=clean_editor_js
+    )
     description_plaintext = TextField(blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
@@ -45,11 +57,12 @@ class ProductCategoryBase(models.Model):
         Returns:
             str: The category name
         """
-        return self.name
+        return str(self.name) if self.name else "Unnamed Category"
 
 
-class Category(ProductCategoryBase, MPTTModel):
+class Category(ProductCategoryBase, MPTTModel, MetadataMixin, SeoModel):
     """Product category model with hierarchical structure using MPTT.
+
     This model represents product categories with support for hierarchical
     relationships, SEO optimization, and metadata storage.
 
@@ -93,6 +106,7 @@ class Category(ProductCategoryBase, MPTTModel):
         verbose_name = "Category"
         verbose_name_plural = "Categories"
         indexes = [
+            *MetadataMixin.Meta.indexes,
             GinIndex(
                 name="category_search_name_slug_gin",
                 fields=["name", "slug", "description_plaintext"],
@@ -126,7 +140,7 @@ class Category(ProductCategoryBase, MPTTModel):
         return self.products.count()
 
 
-class CategoryTranslation(models.Model):
+class CategoryTranslation(SeoModelTranslationWithSlug):
     """Translation model for Category.
 
     Provides multilingual support for category content.
@@ -148,12 +162,9 @@ class CategoryTranslation(models.Model):
     )
     language_code = models.CharField(max_length=35)
     name = models.CharField(max_length=128, blank=True, null=True)
-    description = models.JSONField(blank=True, null=True)
-    slug = models.SlugField(max_length=255, blank=True, null=True)
-
-    # SEO translation fields
-    seo_title = models.CharField(max_length=70, blank=True)
-    seo_description = models.CharField(max_length=300, blank=True)
+    description = SanitizedJSONField(
+        blank=True, null=True, sanitizer=clean_editor_js
+    )
 
     class Meta:
         """Meta options for CategoryTranslation."""
@@ -171,7 +182,12 @@ class CategoryTranslation(models.Model):
         Returns:
             str: The translated name or primary key
         """
-        return self.name if self.name else str(self.pk)
+        if self.name:
+            return str(self.name)
+        elif self.pk is not None:
+            return str(self.pk)
+        else:
+            return "CategoryTranslation (unsaved)"
 
     def __repr__(self):
         """Return detailed string representation.
@@ -199,15 +215,15 @@ class CategoryTranslation(models.Model):
         Returns:
             dict: Dictionary of translated field values
         """
-        return {
+        translated_keys = super().get_translated_keys()
+        translated_keys.update({
             "name": self.name,
             "description": self.description,
-            "seo_title": self.seo_title,
-            "seo_description": self.seo_description,
-        }
+        })
+        return translated_keys
 
 
-class CategoryChannel(models.Model):
+class CategoryChannel(ScheduledVisibilityModel):
     """Category channel listing for multi-channel support.
 
     Manages category visibility and publication status across
