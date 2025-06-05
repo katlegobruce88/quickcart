@@ -18,17 +18,17 @@ from django.forms.models import model_to_dict
 from django.utils import timezone
 
 # Import from core app
-from ems.djangoapps.core.db.fields import SanitizedJSONField, MoneyField
-from ems.djangoapps.core.models import (
+from common.djangoapps.core.db.fields import SanitizedJSONField, MoneyField
+from common.djangoapps.core.models import (
     AutoOrderedModel,
     ExternalReferenceMixin,
     MetadataMixin,
     ScheduledVisibilityModel,
     TimeStampedModel,
 )
-from ems.djangoapps.core.units import WeightUnits
-from ems.djangoapps.core.utils.editorjs import clean_editor_js
-from ems.djangoapps.core.utils.translations import Translation
+from common.djangoapps.core.units import WeightUnits
+from common.djangoapps.core.utils.editorjs import clean_editor_js
+from common.djangoapps.core.utils.translations import Translation
 
 # Import from category app
 from ems.djangoapps.product_category.models.product_category import Category

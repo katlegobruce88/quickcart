@@ -14,13 +14,13 @@ from django.db.models import TextField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
-from ems.djangoapps.core.db.fields import SanitizedJSONField
-from ems.djangoapps.core.models import (
+from common.djangoapps.core.db.fields import SanitizedJSONField
+from common.djangoapps.core.models import (
     MetadataMixin,
     ScheduledVisibilityModel,
     TimeStampedModel,
 )
-from ems.djangoapps.core.utils.editorjs import clean_editor_js
+from common.djangoapps.core.utils.editorjs import clean_editor_js
 # Removed unused import: from Translation
 from ems.djangoapps.seo.models import SeoModel, SeoModelTranslationWithSlug
 

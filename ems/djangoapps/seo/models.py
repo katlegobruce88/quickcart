@@ -21,7 +21,7 @@ from django.core.validators import MaxLengthValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from ems.djangoapps.core.utils.translations import Translation
+from common.djangoapps.core.utils.translations import Translation
 
 
 class SeoModel(models.Model):

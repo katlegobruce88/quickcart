@@ -14,14 +14,14 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 
-from ems.djangoapps.core.db.fields import SanitizedJSONField, MoneyField
-from ems.djangoapps.core.models import (
+from common.djangoapps.core.db.fields import SanitizedJSONField, MoneyField
+from common.djangoapps.core.models import (
     MetadataMixin,
     ExternalReferenceMixin,
     TimeStampedModel,
     AutoOrderedModel,
 )
-from ems.djangoapps.core.utils.editorjs import clean_editor_js
+from common.djangoapps.core.utils.editorjs import clean_editor_js
 from ems.djangoapps.seo.models import SeoModel, SeoModelTranslationWithSlug
 
 

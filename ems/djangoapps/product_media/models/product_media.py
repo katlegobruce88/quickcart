@@ -14,12 +14,12 @@ from django.db.models import QuerySet
 from django.db.transaction import atomic
 
 # Local application imports
-from ems.djangoapps.core.models import (
+from common.djangoapps.core.models import (
     AutoOrderedModel,
     MetadataMixin,
     TimeStampedModel,
 )
-from ems.djangoapps.core.utils.translations import Translation
+from common.djangoapps.core.utils.translations import Translation
 from ems.djangoapps.seo.models import SeoModel, SeoModelTranslationWithSlug
 
 
