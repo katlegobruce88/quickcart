@@ -2,16 +2,19 @@
 """
 Usage: manage.py <system> [options] <django-command> ...
 
-Run Django management commands for different Quickcart subsystems.
+Run Django management commands for different systcms in the Quickcart platform.
 
-Supported systems:
-- marketplace: Customer-facing marketplace frontend
-- sellerportal: Seller dashboard and product management
-- gigportal: Gig workers and job postings
+Supported systcms:
+- cms: Customer Management System (customer-facing)
+- vms: Vendor Management System (merchant-facing)
 
-Supports environment selection via --settings or defaults.
-All other args passed to Django.
+Supports environment selection via --settings or falls back
+to development defaults.
+All other arguments are passed through to Django.
 """
+# pylint: disable=wrong-import-order, wrong-import-position
+
+# Load environment variables from .env file first, before any other imports
 
 import os
 import sys
@@ -20,93 +23,99 @@ from django.core.management import execute_from_command_line
 
 
 def parse_args():
+    """Parse Quickcart-specific CLI arguments
+    commands."""
     parser = ArgumentParser(
         description="Quickcart Multi-System Management CLI"
     )
 
     subparsers = parser.add_subparsers(
         dest="system",
-        title="Available systems",
-        description="Choose the Quickcart system to manage"
+        title="Available systcms",
+        description="Choose the system to manage (e.g., cms, pms)"
     )
 
-    # Marketplace (buyer facing)
-    marketplace = subparsers.add_parser(
-        "marketplace",
-        help="Customer-facing marketplace frontend",
-        usage="manage.py marketplace [options] <django-command>"
+    # CMS system (customer-facing)
+    cms = subparsers.add_parser(
+        "cms",
+        help="Customer Management System (customer-facing)",
+        usage="manage.py cms [options] <django-command>"
     )
-    marketplace.add_argument(
+    cms.add_argument(
         "--settings",
-        help="Settings module under quickcart.marketplace.envs (default: 'dev')."
+        help="Settings module under cms.envs (defaults to 'devstack_docker')."
     )
-    marketplace.set_defaults(
-        settings_base="quickcart.marketplace.envs",
-        default_settings="quickcart.marketplace.envs.dev",
-        help_string=marketplace.format_help()
+    cms.add_argument(
+        "--service-variant",
+        choices=["cms", "cms-xml", "cms-preview"],
+        default="cms",
+        help="Service variant of CMS (used in production)."
+    )
+    cms.set_defaults(
+        settings_base="cms.envs",
+        default_settings="cms.envs.devstack_docker",
+        help_string=cms.format_help()
     )
 
-    # Seller portal (seller facing)
-    sellerportal = subparsers.add_parser(
-        "sellerportal",
-        help="Seller dashboard and product management",
-        usage="manage.py sellerportal [options] <django-command>"
+    # PMS system (merchant-facing)
+    pms = subparsers.add_parser(
+        "pms",
+        help="Vendor Management System (merchant-facing)",
+        usage="manage.py pms [options] <django-command>"
     )
-    sellerportal.add_argument(
+    pms.add_argument(
         "--settings",
-        help="Settings module under quickcart.sellerportal.envs (default: 'dev')."
+        help="Settings module under pms.envs (defaults to 'devstack_docker')."
     )
-    sellerportal.set_defaults(
-        settings_base="quickcart.sellerportal.envs",
-        default_settings="quickcart.sellerportal.envs.dev",
-        help_string=sellerportal.format_help()
-    )
-
-    # Gig portal (gig workers and jobs)
-    gigportal = subparsers.add_parser(
-        "gigportal",
-        help="Gig workers and job postings management",
-        usage="manage.py gigportal [options] <django-command>"
-    )
-    gigportal.add_argument(
-        "--settings",
-        help="Settings module under quickcart.gigportal.envs (default: 'dev')."
-    )
-    gigportal.set_defaults(
-        settings_base="quickcart.gigportal.envs",
-        default_settings="quickcart.gigportal.envs.dev",
-        help_string=gigportal.format_help()
+    pms.set_defaults(
+        settings_base="pms.envs",
+        default_settings="pms.envs.devstack_docker",
+        service_variant="pms",
+        help_string=pms.format_help()
     )
 
     parsed_args, remaining_args = parser.parse_known_args()
 
+    # Display global help if no system is specified or help is requested
     if (not parsed_args.system or
-        "--help" in remaining_args or
-        "-h" in remaining_args):
+            "--help" in remaining_args or
+            "-h" in remaining_args):
         parser.print_help()
         if hasattr(parsed_args, "help_string"):
             print(f"\nOptions for '{parsed_args.system}':\n")
             print(parsed_args.help_string)
         else:
-            print("\n[ERROR] Please specify a valid system: marketplace, sellerportal, or gigportal.")
+            print("\n[ERROR] Please specify a valid system: cms or pms.")
         sys.exit(0)
 
     return parsed_args, remaining_args
 
 
 def main():
+    """Main CLI entrypoint for Quickcart manage.py."""
+    # Add the project root to Python path
     sys.path.insert(0, os.getcwd())
 
     args, django_args = parse_args()
 
-    settings_module = args.settings or os.environ.get("QUICKCART_SETTINGS")
+    # Determine the Django settings module
+    settings_module = args.settings or os.environ.get(
+        "QUICKCART_PLATFORM_SETTINGS"
+    )
     if settings_module:
-        os.environ["DJANGO_SETTINGS_MODULE"] = f"{args.settings_base}.{settings_module}"
+        os.environ["DJANGO_SETTINGS_MODULE"] = (
+            f"{args.settings_base}.{settings_module}"
+        )
     else:
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", args.default_settings)
 
-    os.environ.setdefault("SERVICE_VARIANT", args.system)
+    # Set the service variant environment variable
+    os.environ.setdefault(
+        "SERVICE_VARIANT",
+        getattr(args, "service_variant", args.system)
+    )
 
+    # Execute the Django management command
     execute_from_command_line([sys.argv[0]] + django_args)
 
 
