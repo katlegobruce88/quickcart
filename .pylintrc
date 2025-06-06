@@ -1,8 +1,8 @@
 [MASTER]
 load-plugins=pylint_django
-django-settings-module=quickcart.settings
+django-settings-module=ems.envs.common
 ignore=migrations
-ignore-patterns=**/migrations/*.py
+ignore-patterns=.*/migrations/.*\.py
 extension-pkg-whitelist=cryptography,lxml,psycopg2
 
 [FORMAT]
@@ -34,7 +34,6 @@ disable=C0111,C0114,C0115,C0116,  # missing docstrings
 
 [DJANGO]
 # Django-specific settings
-django-modules-to-check=ems.djangoapps, common
 
 [BASIC]
 good-names=i,j,k,ex,Run,_,pk,id,urlpatterns,register,app_name,qs,db,ip
